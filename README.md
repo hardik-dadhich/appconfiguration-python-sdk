@@ -1,2 +1,2 @@
-# appconfiguration-python-client-sdk
-Python client SDK for IBM Cloud App Configuration service
+# appconfiguration-python-sdk
+Python server SDK for IBM Cloud App Configuration service

@@ -12,4 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ibm_appconfiguration.appconfiguration import AppConfiguration, Feature, Property, ConfigurationType
+class SegmentRules:
+    """
+       Attributes:
+        segment_rules (dict): segment_rules JSON object that contains all the SegmentRules
+   """
+
+    def __init__(self, segment_rules=dict()):
+
+        self.__order = segment_rules.get("order", 1)
+        self.__value = segment_rules.get("value", object)
+        self.__rules = segment_rules.get("rules", list())
+
+    def get_order(self) -> int:
+        return self.__order
+
+    def get_rules(self) -> list:
+        return self.__rules
+
+    def get_value(self):
+        return self.__value

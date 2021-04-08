@@ -1,13 +1,19 @@
-# (C) Copyright IBM Corp. 2021.
+# Copyright 2021 IBM All Rights Reserved.
 #
-# Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from ibm_appconfiguration.core.internal import Logger
+
 
 class Rule:
     """
@@ -29,43 +35,69 @@ class Rule:
     def get_values(self) -> list:
         return self.__values
 
-    def __ends_with(self, key: str, value: str) -> bool:
+    def __ends_with(self, key, value) -> bool:
         return key.endswith(value)
 
-    def __starts_with(self, key: str, value: str) -> bool:
+    def __starts_with(self, key, value) -> bool:
         return key.startswith(value)
 
-    def __contains(self, key: str, value: str) -> bool:
-        return key in value
+    def __contains(self, key, value) -> bool:
+        return value in key
 
-    def __is(self, key: str, value: str) -> bool:
+    def __is(self, key, value) -> bool:
         if type(key) is type(value):
             return key == value
+        elif str(key) == str(value):
+            return True
         else:
             return False
 
-    def __greater_than(self, key: str, value: str) -> bool:
+    def __greater_than(self, key, value) -> bool:
         if type(key) is type(value) and str(key).isnumeric():
             return key > value
         else:
+            if not str(key).isnumeric() or not str(value).isnumeric():
+                return False
+            try:
+                return float(key) > float(value)
+            except Exception as e:
+                Logger.error(e)
             return False
 
-    def __lesser_than(self, key: str, value: str) -> bool:
+    def __lesser_than(self, key, value) -> bool:
         if type(key) is type(value) and str(key).isnumeric():
             return key < value
         else:
+            if not str(key).isnumeric() or not str(value).isnumeric():
+                return False
+            try:
+                return float(key) < float(value)
+            except Exception as e:
+                Logger.error(e)
             return False
 
-    def __greater_than_equals(self, key: str, value: str) -> bool:
+    def __greater_than_equals(self, key, value) -> bool:
         if type(key) is type(value) and str(key).isnumeric():
             return key >= value
         else:
+            if not str(key).isnumeric() or not str(value).isnumeric():
+                return False
+            try:
+                return float(key) >= float(value)
+            except Exception as e:
+                Logger.error(e)
             return False
 
-    def __lesser_than_equals(self, key: str, value: str) -> bool:
+    def __lesser_than_equals(self, key, value) -> bool:
         if type(key) is type(value) and str(key).isnumeric():
             return key <= value
         else:
+            if not str(key).isnumeric() or not str(value).isnumeric():
+                return False
+            try:
+                return float(key) <= float(value)
+            except Exception as e:
+                Logger.error(e)
             return False
 
     def __operator_check(self, key_data=None, value_data=None) -> bool:

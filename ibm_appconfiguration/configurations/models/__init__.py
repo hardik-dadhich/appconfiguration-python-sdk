@@ -12,4 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ibm_appconfiguration.appconfiguration import AppConfiguration, Feature, Property, ConfigurationType
+from .feature import Feature
+from .rule import Rule
+from .segment_rules import SegmentRules
+from .segment import Segment
+from .property import Property
+from .configurationType import ConfigurationType
+

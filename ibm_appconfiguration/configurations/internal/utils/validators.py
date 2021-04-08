@@ -12,4 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ibm_appconfiguration.appconfiguration import AppConfiguration, Feature, Property, ConfigurationType
+from typing import TypeVar, cast, Type
+
+T = TypeVar('T')
+
+
+class Validators:
+
+    @classmethod
+    def validate_string(cls, value: str) -> bool:
+        return bool(value and value.strip())

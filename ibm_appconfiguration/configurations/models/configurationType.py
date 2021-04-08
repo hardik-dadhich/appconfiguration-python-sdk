@@ -12,4 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ibm_appconfiguration.appconfiguration import AppConfiguration, Feature, Property, ConfigurationType
+import enum
+
+
+class ConfigurationType(enum.Enum):
+    NUMERIC = 'NUMERIC'
+    STRING = 'STRING'
+    BOOLEAN = 'BOOLEAN'

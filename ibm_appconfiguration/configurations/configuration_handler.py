@@ -24,8 +24,8 @@ from .internal.utils.file_manager import FileManager
 from .internal.utils.metering import Metering
 from .internal.utils.socket import Socket
 from .internal.utils.url_builder import URLBuilder
-from threading import Timer
-from ibm_appconfiguration.configurations.internal.common import constants
+from threading import Timer, Thread
+from ibm_appconfiguration.configurations.internal.common import config_messages, config_constants
 from .internal.utils.connectivity import Connectivity
 
 try:
@@ -48,9 +48,10 @@ class ConfigurationHandler:
         """ Virtually private constructor. """
         self.__retry_count = 3
         if ConfigurationHandler.__instance is not None:
-            raise Exception("ConfigurationHandler " + constants.SINGLETON_EXCEPTION)
+            raise Exception("ConfigurationHandler " + config_messages.SINGLETON_EXCEPTION)
         else:
             self.__collection_id = ''
+            self.__environment_id = ''
             self.__apikey = ''
             self.__guid = ''
             self.__region = ''
@@ -83,33 +84,34 @@ class ConfigurationHandler:
         self.__feature_map = dict()
         self.__property_map = dict()
         self.__segment_map = dict()
-        thread.start_new_thread(self.__check_network, ())
 
-    def set_collection_id(self, collection_id: str):
+    def set_context(self, collection_id: str, environment_id: str,
+                    configuration_file: Optional[str] = None,
+                    live_config_update_enabled: Optional[bool] = True):
 
         self.__collection_id = collection_id
+        self.__environment_id = environment_id
         URLBuilder.init_with_collection_id(collection_id=collection_id,
                                            guid=self.__guid,
                                            region=self.__region,
+                                           environment_id=environment_id,
                                            override_server_host=self.__override_server_host)
         Metering.get_instance().set_metering_url(URLBuilder.get_metering_url(), self.__apikey)
         self.__is_initialized = True
 
-    def fetch_configuration_from_file(self, live_config_update_enabled: Optional[bool] = True,
-                                      configuration_file: Optional[str] = None):
         self.__live_config_update_enabled = live_config_update_enabled
         self.__config_file = configuration_file
-        thread.start_new_thread(self.__check_network, ())
+        self.__check_network()
 
     def load_data(self):
         if not self.__is_initialized:
-            Logger.error(constants.CONFIGURATION_HANDLER_INIT_ERROR)
+            Logger.error(config_messages.CONFIGURATION_HANDLER_INIT_ERROR)
             return
         if self.__config_file:
             self.__get_file_data(self.__config_file)
         self.__load_configurations()
         if self.__live_config_update_enabled:
-            thread.start_new_thread(self.__fetch_config_data, ())
+            self.__fetch_config_data()
         else:
             if self.__socket:
                 self.__socket.cancel()
@@ -119,9 +121,9 @@ class ConfigurationHandler:
             if self.__is_initialized:
                 self.__configuration_update_listener = listener
             else:
-                Logger.error(constants.CONFIGURATION_HANDLER_INIT_ERROR)
+                Logger.error(config_messages.CONFIGURATION_HANDLER_INIT_ERROR)
         else:
-            Logger.error(constants.CONFIGURATION_HANDLER_METHOD_ERROR)
+            Logger.error(config_messages.CONFIGURATION_HANDLER_METHOD_ERROR)
 
     def __check_network(self):
         if self.__live_config_update_enabled:
@@ -140,9 +142,10 @@ class ConfigurationHandler:
         if is_connected:
             if not self.__is_network_connected:
                 self.__is_network_connected = True
-                thread.start_new_thread(self.__fetch_config_data, ())
+                print("Here")
+                self.__fetch_config_data()
         else:
-            Logger.debug(constants.NO_INTERNET_CONNECTION_ERROR)
+            Logger.debug(config_messages.NO_INTERNET_CONNECTION_ERROR)
             self.__is_network_connected = False
 
     def get_properties(self) -> Dict[str, Property]:
@@ -156,7 +159,7 @@ class ConfigurationHandler:
             if property_id in self.__property_map:
                 return self.__property_map.get(property_id)
             else:
-                Logger.error(constants.PROPERTY_INVALID + property_id)
+                Logger.error(config_messages.PROPERTY_INVALID + property_id)
                 return None
 
     def get_features(self) -> Dict[str, Feature]:
@@ -170,13 +173,16 @@ class ConfigurationHandler:
             if feature_id in self.__feature_map:
                 return self.__feature_map.get(feature_id)
             else:
-                Logger.error(constants.FEATURE_INVALID + feature_id)
+                Logger.error(config_messages.FEATURE_INVALID + feature_id)
                 return None
 
     def __fetch_config_data(self):
         if self.__is_initialized:
             self.__fetch_from_api()
-            self.__start_web_socket()
+            self.__on_socket_retry = False
+            config_thread = Thread(target=self.__start_web_socket, args=())
+            config_thread.daemon = True
+            config_thread.start()
 
     def __start_web_socket(self):
         headers = {
@@ -184,6 +190,7 @@ class ConfigurationHandler:
         }
         if self.__socket:
             self.__socket.cancel()
+            self.__socket = None
         self.__socket = Socket(
             url=URLBuilder.get_web_socket_url(),
             headers=headers,
@@ -234,6 +241,7 @@ class ConfigurationHandler:
     def record_valuation(self, property_id, feature_id, identity_id, evaluated_segment_id):
         Metering.get_instance().add_metering(
             guid=self.__guid,
+            environment_id=self.__environment_id,
             collection_id=self.__collection_id,
             identity_id=identity_id,
             segment_id=evaluated_segment_id,
@@ -244,7 +252,7 @@ class ConfigurationHandler:
     def property_evaluation(self, property_obj: Property, identity_id: str, identity_attributes: dict = dict()) -> Any:
 
         result_dict = {
-            'evaluated_segment_id': constants.DEFAULT_SEGMENT_ID,
+            'evaluated_segment_id': config_constants.DEFAULT_SEGMENT_ID,
             'value': None
         }
 
@@ -268,7 +276,7 @@ class ConfigurationHandler:
     def feature_evaluation(self, feature: Feature, identity_id: str, identity_attributes: dict = dict()) -> Any:
 
         result_dict = {
-            'evaluated_segment_id': constants.DEFAULT_SEGMENT_ID,
+            'evaluated_segment_id': config_constants.DEFAULT_SEGMENT_ID,
             'value': None
         }
         try:
@@ -296,7 +304,7 @@ class ConfigurationHandler:
                          feature: Feature = None,
                          property_obj: Property = None) -> dict:
         result_dict = {
-            'evaluated_segment_id': constants.DEFAULT_SEGMENT_ID,
+            'evaluated_segment_id': config_constants.DEFAULT_SEGMENT_ID,
             'value': None
         }
         for i in range(1, len(rules_map) + 1):
@@ -382,10 +390,10 @@ class ConfigurationHandler:
                     self.__fetch_from_api()
                 else:
                     self.__retry_count = 3
-                    Logger.error(constants.CONFIGURATION_API_ERROR)
+                    Logger.error(config_messages.CONFIGURATION_API_ERROR)
                     Timer(self.__retry_interval, lambda: self.__fetch_from_api()).start()
         else:
-            Logger.debug(constants.CONFIGURATION_HANDLER_INIT_ERROR)
+            Logger.debug(config_messages.CONFIGURATION_HANDLER_INIT_ERROR)
 
     def __on_web_socket_callback(self, message=None, error_state=None, closed_state=None, open_state=None):
         if message:
@@ -393,10 +401,12 @@ class ConfigurationHandler:
             Logger.debug(f'Received message from socket {message}')
         elif error_state:
             Logger.debug(f'Received error from socket {error_state}')
+            Timer(self.__retry_interval, lambda: self.__start_web_socket()).start()
         elif closed_state:
             Logger.debug(f'Received close connection from socket')
-            self.__on_socket_retry = True
-            Timer(self.__retry_interval, lambda: self.__start_web_socket()).start()
+            if self.__socket is not None:
+                self.__on_socket_retry = True
+                Timer(self.__retry_interval, lambda: self.__start_web_socket()).start()
         elif open_state:
             if self.__on_socket_retry:
                 self.__on_socket_retry = False

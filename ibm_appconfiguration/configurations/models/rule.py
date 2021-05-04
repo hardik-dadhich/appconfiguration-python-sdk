@@ -53,51 +53,40 @@ class Rule:
             return False
 
     def __greater_than(self, key, value) -> bool:
-        if type(key) is type(value) and str(key).isnumeric():
-            return key > value
+
+        key_obj = self.__number_conversion(key)
+        value_obj = self.__number_conversion(value)
+
+        if key_obj[0] and value_obj[0]:
+            return key_obj[1] > value_obj[1]
         else:
-            if not str(key).isnumeric() or not str(value).isnumeric():
-                return False
-            try:
-                return float(key) > float(value)
-            except Exception as e:
-                Logger.error(e)
             return False
 
     def __lesser_than(self, key, value) -> bool:
-        if type(key) is type(value) and str(key).isnumeric():
-            return key < value
+        key_obj = self.__number_conversion(key)
+        value_obj = self.__number_conversion(value)
+
+        if key_obj[0] and value_obj[0]:
+            return key_obj[1] < value_obj[1]
         else:
-            if not str(key).isnumeric() or not str(value).isnumeric():
-                return False
-            try:
-                return float(key) < float(value)
-            except Exception as e:
-                Logger.error(e)
             return False
 
     def __greater_than_equals(self, key, value) -> bool:
-        if type(key) is type(value) and str(key).isnumeric():
-            return key >= value
+        key_obj = self.__number_conversion(key)
+        value_obj = self.__number_conversion(value)
+
+        if key_obj[0] and value_obj[0]:
+            return key_obj[1] >= value_obj[1]
         else:
-            if not str(key).isnumeric() or not str(value).isnumeric():
-                return False
-            try:
-                return float(key) >= float(value)
-            except Exception as e:
-                Logger.error(e)
             return False
 
     def __lesser_than_equals(self, key, value) -> bool:
-        if type(key) is type(value) and str(key).isnumeric():
-            return key <= value
+        key_obj = self.__number_conversion(key)
+        value_obj = self.__number_conversion(value)
+
+        if key_obj[0] and value_obj[0]:
+            return key_obj[1] <= value_obj[1]
         else:
-            if not str(key).isnumeric() or not str(value).isnumeric():
-                return False
-            try:
-                return float(key) <= float(value)
-            except Exception as e:
-                Logger.error(e)
             return False
 
     def __operator_check(self, key_data=None, value_data=None) -> bool:
@@ -121,6 +110,12 @@ class Rule:
         }
 
         return case_checker.get(self.__operator, False)(key, value)
+
+    def __number_conversion(self, value) -> (bool, float):
+        if type(float(value)) is float:
+            return True, float(value)
+        else:
+            return False, 0
 
     def evaluate_rule(self, identity_attributes: dict) -> bool:
 

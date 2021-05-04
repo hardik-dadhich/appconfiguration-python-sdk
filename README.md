@@ -42,7 +42,9 @@ app_config.init(region=AppConfiguration.REGION_US_SOUTH,
                apikey='APIKEY')
 
 ## Initialize configurations 
-app_config.set_collection_id(collection_id='collection_id') 
+app_config.set_context(collection_id='collection_id',
+                       environment_id='environment_id')
+
 ```
 
 - region : Region name where the service instance is created. Use
@@ -52,17 +54,16 @@ app_config.set_collection_id(collection_id='collection_id')
 - guid : GUID of the App Configuration service. Get it from the service credentials section of the dashboard
 - apikey : ApiKey of the App Configuration service. Get it from the service credentials section of the dashboard
 - collection_id : Id of the collection created in App Configuration service instance.
+- environment_id : Id of the environment created in App Configuration service instance.
 
-## Work offline with local configuration file
-
+### Work offline with local configuration file
 You can also work offline with local configuration file and perform feature and property related operations.
 
-After setting the collection Id, follow the below steps
-
 ```py
-## set the file or offline configurations
-app_config.fetch_configuration_from_file(configuration_file='custom/userJson.json', 
-                                    live_config_update_enabled=True)
+app_config.set_context(collection_id='collection_id',
+                       environment_id='environment_id',
+                       configuration_file='custom/userJson.json',
+                       live_config_update_enabled=True)
 ```
 - configuration_file : Path to the JSON file which contains configuration details.
 - live_config_update_enabled : Set this value to false if the new configuration values shouldn't be fetched from the server. Make sure to provide a proper JSON file in the configuration_file path. By default, this value is enabled.

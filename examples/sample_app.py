@@ -63,13 +63,6 @@ class Window(tk.Tk):
         }
         val = feature.get_current_value()
 
-        # if self.currentmode:
-        #     self.currentmode = False
-        # else:
-        #     self.currentmode = True
-        #
-        # self.initialize_app(collectionId=self.currentColl, isOnLine=self.currentmode)
-
     def change_collection(self):
         if self.currentColl == config.COLLECTION:
             self.currentColl = config.COLLECTION1
@@ -88,8 +81,7 @@ class Window(tk.Tk):
 
                     identity = {
                         'city': 'Bangalore',
-                        'country': 'India',
-                        'email': "vader@sw.com"
+                        'country': 'India'
                     }
                     if property_obj.get_property_data_type() == ConfigurationType.NUMERIC:
                         val = property_obj.get_current_value("pvQr45", identity)
@@ -99,9 +91,6 @@ class Window(tk.Tk):
                     print("No configurations")
             except Exception as err:
                 print(err)
-
-
-
         else:
             self.label_text.set("Not loaded")
             self.label.configure(background="grey")
@@ -116,8 +105,7 @@ class Window(tk.Tk):
 
                     identity = {
                         'city': 'Bangalore',
-                        'country': 'India',
-                        'email': "vader@sw.com"
+                        'country': 'India'
                     }
                     if feature.get_feature_data_type() == ConfigurationType.STRING:
                         val = feature.get_current_value("pvQr45", identity)
@@ -151,8 +139,7 @@ class Window(tk.Tk):
         app_config.init(region=AppConfiguration.REGION_US_SOUTH,
                         guid=config.GUID,
                         apikey=config.APIKEY)
-        app_config.set_collection_id(config.COLLECTION)
-        # app_config.fetch_features_from_file(feature_file=config.FILE, live_feature_update_enabled=isOnLine)
+        app_config.set_context(collection_id=config.COLLECTION, environment_id=config.ENV, configuration_file=config.FILE, live_config_update_enabled=isOnLine)
 
         app_config.register_configuration_update_listener(self.response)
 

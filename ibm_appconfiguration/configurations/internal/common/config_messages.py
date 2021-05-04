@@ -15,20 +15,17 @@
 REGION_ERROR = "Provide a valid region in App Configuration init"
 GUID_ERROR = "Provide a valid guid in App Configuration init"
 APIKEY_ERROR = "Provide a valid apiKey in App Configuration init"
-COLLECTION_ID_VALUE_ERROR = "Provide a valid collection_id in App Configuration set_collection_id method"
-COLLECTION_ID_ERROR = "Invalid action in App Configuration. This action can be performed only after a successful " \
-                      "initialization. Please check the initialization section for errors. "
-COLLECTION_SUB_ERROR = "Invalid action in App Configuration. This action can be performed only after a successful " \
-                       "initialization and set collection_id value operation. Please check the initialization and " \
-                       "set_collection_id sections for errors. "
+COLLECTION_ID_VALUE_ERROR = "Provide a valid collection_id in App Configuration set_context method"
+ENVIRONMENT_ID_VALUE_ERROR = "Provide a valid environment_id in App Configuration set_context method"
+COLLECTION_INIT_ERROR = "Invalid action in App Configuration. This action can be performed only after a successful " \
+                       "initialization operation. Please check the initialization section for errors. "
 CONFIGURATION_FILE_NOT_FOUND_ERROR = "configuration_file parameter should be provided while " \
-                                     "live_config_update_enabled is false during initialization "
+                                     "live_config_update_enabled is false in set_context method."
 CONFIGURATION_HANDLER_INIT_ERROR = 'Invalid action in ConfigurationHandler. This action can be performed only after a ' \
                                    'successful initialization. Please check the initialization section for errors. '
 CONFIGURATION_HANDLER_METHOD_ERROR = "Invalid action in ConfigurationHandler. Should be a method/function"
-CONFIGURATION_API_ERROR = "Invalid configuration. Verify the collectionId, apikey, guid and region."
+CONFIGURATION_API_ERROR = "Invalid configuration. Verify the collection_id, environment_id, apikey, guid and region."
 SINGLETON_EXCEPTION = "class must be initialized using the get_instance() method."
 FEATURE_INVALID = "Invalid feature_id - "
 NO_INTERNET_CONNECTION_ERROR = 'No connection to internet. Please re-connect.'
 PROPERTY_INVALID = "Invalid property_id - "
-DEFAULT_SEGMENT_ID = '$$null$$'

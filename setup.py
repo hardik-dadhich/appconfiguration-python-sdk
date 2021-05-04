@@ -15,7 +15,7 @@
 from setuptools import setup, find_packages
 
 NAME = "ibm-appconfiguration-python-sdk"
-VERSION = "1.1.0"
+VERSION = "2.0.0"
 # To install the library, run the following
 #
 # python setup.py install

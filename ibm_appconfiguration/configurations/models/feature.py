@@ -23,7 +23,7 @@ class Feature:
         """
         @type feature_list: dict
         """
-        self.__enabled = feature_list.get('isEnabled', False)
+        self.__enabled = feature_list.get('enabled', False)
         self.__name = feature_list.get('name', '')
         self.__feature_id = feature_list.get('feature_id', '')
         self.__segment_rules = feature_list.get('segment_rules', list())

@@ -23,13 +23,36 @@ class MyTestCase(unittest.TestCase):
         metering = Metering.get_instance(False)
 
         # test features
-        metering.add_metering(guid="guid1", collection_id="collection_id1", identity_id="id_1", segment_id="segment_id1", feature_id='feature_id1')
-        metering.add_metering(guid="guid1", collection_id="collection_id2", identity_id="id_1", segment_id="segment_id1", feature_id='feature_id1')
-        metering.add_metering(guid="guid1", collection_id="collection_id2", identity_id="id_1", segment_id="segment_id1", feature_id='feature_id1')
+       metering = Metering.get_instance(False)
 
-        metering.add_metering(guid="guid1", collection_id="collection_id1", identity_id="id_1", segment_id="segment_id1", property_id='property_id1')
-        metering.add_metering(guid="guid1", collection_id="collection_id2", identity_id="id_1", segment_id="segment_id1", property_id='property_id1')
-        metering.add_metering(guid="guid1", collection_id="collection_id2", identity_id="id_1", segment_id="segment_id1", property_id='property_id1')
+        # test features
+        metering.add_metering(guid="guid1", environment_id="environment_id1", collection_id="collection_id1",
+                              identity_id="id_1", segment_id="segment_id1", feature_id='feature_id1')
+        metering.add_metering(guid="guid1", environment_id="environment_id1", collection_id="collection_id2",
+                              identity_id="id_1", segment_id="segment_id1", feature_id='feature_id1')
+        metering.add_metering(guid="guid1", environment_id="environment_id1", collection_id="collection_id2",
+                              identity_id="id_1", segment_id="segment_id1", feature_id='feature_id1')
+
+        metering.add_metering(guid="guid1", environment_id="environment_id2", collection_id="collection_id1",
+                              identity_id="id_1", segment_id="segment_id1", property_id='property_id1')
+        metering.add_metering(guid="guid1", environment_id="environment_id2", collection_id="collection_id2",
+                              identity_id="id_1", segment_id="segment_id1", property_id='property_id1')
+        metering.add_metering(guid="guid1", environment_id="environment_id2", collection_id="collection_id2",
+                              identity_id="id_1", segment_id="$$null$$", property_id='property_id1')
+        metering.add_metering(guid="guid1", environment_id="environment_id2", collection_id="collection_id2",
+                              identity_id="id_6", segment_id="$$null$$", property_id='property_id1')
+        metering.add_metering(guid="guid1", environment_id="environment_id2", collection_id="collection_id2",
+                              identity_id="id_3", segment_id="$$null$$", property_id='property_id1')
+        metering.add_metering(guid="guid1", environment_id="environment_id2", collection_id="collection_id2",
+                              identity_id="id_4", segment_id="$$null$$", property_id='property_id1')
+        metering.add_metering(guid="guid1", environment_id="environment_id2", collection_id="collection_id2",
+                              identity_id="id_1", segment_id="$$null$$", property_id='property_id1')
+        metering.add_metering(guid="guid1", environment_id="environment_id2", collection_id="collection_id2",
+                              identity_id="id_1", segment_id="$$null$$", property_id='property_id1')
+        metering.add_metering(guid="guid1", environment_id="environment_id2", collection_id="collection_id2",
+                              identity_id="id_2", segment_id="$$null$$", property_id='property_id1')
+        metering.add_metering(guid="guid1", environment_id="environment_id2", collection_id="collection_id2",
+                              identity_id="id_5", segment_id="$$null$$", property_id='property_id1')
 
         result = metering.send_metering()
         print(result)

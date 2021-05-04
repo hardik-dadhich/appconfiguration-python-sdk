@@ -11,3 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+DEFAULT_SEGMENT_ID = '$$null$$'
+DEFAULT_HTTP_TYPE = 'https://'
+DEFAULT_WSS_TYPE = "wss://"
+DEFAULT_BASE_URL = ".apprapp.cloud.ibm.com"

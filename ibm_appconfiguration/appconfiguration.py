@@ -15,7 +15,7 @@
 from .configurations.internal.utils.validators import Validators
 from .configurations.models import Feature, ConfigurationType, Property
 from .core.internal import Logger
-from .configurations.internal.common import constants
+from .configurations.internal.common import config_messages
 from typing import Dict, List, Optional
 from .configurations.configuration_handler import ConfigurationHandler
 
@@ -45,7 +45,7 @@ class AppConfiguration:
         """ Virtually private constructor. """
 
         if AppConfiguration.__instance is not None:
-            raise Exception("AppConfiguration " + constants.SINGLETON_EXCEPTION)
+            raise Exception("AppConfiguration " + config_messages.SINGLETON_EXCEPTION)
         else:
             self.__apikey = ''
             self.__region = ''
@@ -59,13 +59,13 @@ class AppConfiguration:
     def init(self, region: str, guid: str, apikey: str):
 
         if not Validators.validate_string(region):
-            Logger.error(constants.REGION_ERROR)
+            Logger.error(config_messages.REGION_ERROR)
             return
         if not Validators.validate_string(apikey):
-            Logger.error(constants.APIKEY_ERROR)
+            Logger.error(config_messages.APIKEY_ERROR)
             return
         if not Validators.validate_string(guid):
-            Logger.error(constants.GUID_ERROR)
+            Logger.error(config_messages.GUID_ERROR)
             return
         self.__apikey = apikey
         self.__region = region
@@ -83,48 +83,43 @@ class AppConfiguration:
     def get_apikey(self) -> str:
         return self.__apikey
 
+    def set_context(self, collection_id: str, environment_id: str,
+                    configuration_file: Optional[str] = None,
+                    live_config_update_enabled: Optional[bool] = True):
+
+        if not self.__is_initialized:
+            Logger.error(config_messages.COLLECTION_INIT_ERROR)
+            return
+
+        if not Validators.validate_string(collection_id):
+            Logger.error(config_messages.COLLECTION_ID_VALUE_ERROR)
+            return
+
+        if not Validators.validate_string(environment_id):
+            Logger.error(config_messages.ENVIRONMENT_ID_VALUE_ERROR)
+            return
+
+        self.__is_initialized_configuration = True
+        if not live_config_update_enabled and configuration_file is None:
+            Logger.error(config_messages.CONFIGURATION_FILE_NOT_FOUND_ERROR)
+            return
+
+        self.__configuration_handler_instance.set_context(collection_id, environment_id, configuration_file,
+                                                          live_config_update_enabled)
+        self.__load_data_now()
+
+    def fetch_configurations(self):
+        if self.__is_initialized and self.__is_initialized_configuration:
+            self.__load_data_now()
+        else:
+            Logger.error(config_messages.COLLECTION_INIT_ERROR)
+
     def __setup_configuration_handler(self):
         self.__configuration_handler_instance = ConfigurationHandler.get_instance()
         self.__configuration_handler_instance.init(apikey=self.__apikey,
                                                    guid=self.__guid,
                                                    region=self.__region,
                                                    override_server_host=self.override_server_host)
-
-    def fetch_configuration_from_file(self,
-                                      configuration_file: Optional[str] = None,
-                                      live_config_update_enabled: Optional[bool] = True):
-        if not self.__is_initialized or not self.__is_initialized_configuration:
-            Logger.error(constants.COLLECTION_ID_ERROR)
-            return
-
-        if not live_config_update_enabled and configuration_file is None:
-            Logger.error(constants.CONFIGURATION_FILE_NOT_FOUND_ERROR)
-            return
-        self.__configuration_handler_instance.fetch_configuration_from_file(configuration_file=configuration_file,
-                                                                            live_config_update_enabled=live_config_update_enabled)
-        thread.start_new_thread(self.__load_data_now, ())
-        return
-
-    def set_collection_id(self, collection_id: str):
-
-        if not self.__is_initialized:
-            Logger.error(constants.COLLECTION_ID_ERROR)
-            return
-
-        if not Validators.validate_string(collection_id):
-            Logger.error(constants.COLLECTION_ID_VALUE_ERROR)
-            return
-
-        self.__configuration_handler_instance.set_collection_id(collection_id=collection_id)
-        self.__is_initialized_configuration = True
-        thread.start_new_thread(self.__load_data_now, ())
-        return
-
-    def fetch_configurations(self):
-        if self.__is_initialized and self.__is_initialized_configuration:
-            thread.start_new_thread(self.__load_data_now, ())
-        else:
-            Logger.error(constants.COLLECTION_SUB_ERROR)
 
     def __load_data_now(self):
         if self.__is_loading:
@@ -137,34 +132,34 @@ class AppConfiguration:
         if self.__is_initialized and self.__is_initialized_configuration:
             self.__configuration_handler_instance.register_configuration_update_listener(listener)
         else:
-            Logger.error(constants.COLLECTION_SUB_ERROR)
+            Logger.error(config_messages.COLLECTION_INIT_ERROR)
 
     def get_feature(self, feature_id: str) -> Feature:
         if self.__is_initialized and self.__is_initialized_configuration:
             return self.__configuration_handler_instance.get_feature(feature_id)
         else:
-            Logger.error(constants.COLLECTION_SUB_ERROR)
+            Logger.error(config_messages.COLLECTION_INIT_ERROR)
             return None
 
     def get_features(self) -> Dict[str, Feature]:
         if self.__is_initialized and self.__is_initialized_configuration:
             return self.__configuration_handler_instance.get_features()
         else:
-            Logger.error(constants.COLLECTION_SUB_ERROR)
+            Logger.error(config_messages.COLLECTION_INIT_ERROR)
             return None
 
     def get_properties(self) -> Dict[str, Property]:
         if self.__is_initialized and self.__is_initialized_configuration:
             return self.__configuration_handler_instance.get_properties()
         else:
-            Logger.error(constants.COLLECTION_SUB_ERROR)
+            Logger.error(config_messages.COLLECTION_INIT_ERROR)
             return None
 
     def get_property(self, property_id: str) -> Property:
         if self.__is_initialized and self.__is_initialized_configuration:
             return self.__configuration_handler_instance.get_property(property_id)
         else:
-            Logger.error(constants.COLLECTION_SUB_ERROR)
+            Logger.error(config_messages.COLLECTION_INIT_ERROR)
             return None
 
     def enable_debug(self, enable: bool):

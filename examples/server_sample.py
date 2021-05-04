@@ -14,7 +14,7 @@
 
 import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from ibm_appconfiguration import AppConfiguration, Feature, FeatureType
+from ibm_appconfiguration import AppConfiguration, Feature, ConfigurationType
 import config
 import time
 import secrets
@@ -31,8 +31,7 @@ def setup() -> None:
     app_config.init(region=AppConfiguration.REGION_US_SOUTH,
                     guid=config.GUID,
                     apikey=config.APIKEY)
-    app_config.set_collection_id(config.COLLECTION)
-    app_config.fetch_features_from_file(live_feature_update_enabled=True, feature_file=config.FILE)
+    app_config.set_context(collection_id=config.COLLECTION, environment_id=config.ENV, configuration_file=config.FILE, live_config_update_enabled=isOnLine)
 
 def fetch_feature(feature_id: str, request_object=None) -> str:
     if has_data:
@@ -44,13 +43,13 @@ def fetch_feature(feature_id: str, request_object=None) -> str:
                     'city': 'Bangalore',
                     'country': 'India'
                 }
-                if feature.get_feature_data_type() == FeatureType.STRING:
+                if feature.get_feature_data_type() == ConfigurationType.STRING:
                     val = feature.get_current_value(id='pvQr45', identity_attributes=identity)
                     return f"Your feature value is {val}"
-                elif feature.get_feature_data_type() == FeatureType.BOOLEAN:
+                elif feature.get_feature_data_type() == ConfigurationType.BOOLEAN:
                     val = feature.get_current_value('pvQr45', identity)
                     return f"Your feature value is {val}"
-                elif feature.get_feature_data_type() == FeatureType.NUMERIC:
+                elif feature.get_feature_data_type() == ConfigurationType.NUMERIC:
                     val = feature.get_current_value('pvQr45', identity)
                     return f"Your feature value is {val}"
             else:
@@ -84,23 +83,23 @@ class MockServer(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'application/json')
         self.end_headers()
 
-        emails = ['tester@google.com', 'premium@ibm.com']
+        locations = ['Texas', 'California']
         app_config = AppConfiguration.get_instance()
-        email = secrets.choice(emails)
+        location = secrets.choice(locations)
 
         feature = app_config.get_feature("featurestring")
 
         identity = {
             'id': 'pvqr',
-            "email": email
+            "location": location
         }
         value = feature.get_current_value("pvQr45", identity)
 
         is_valid = True
         if value == "Hello Googler":
-            is_valid = "tester@google.com" == email
+            is_valid = "Texas" == location
         elif value == "Hello IBMer":
-            is_valid = "premium@ibm.com" == email
+            is_valid = "California" == location
 
         self.wfile.write(json.dumps({'is_valid': is_valid, 'featurevalue': value,
                                      'time': round(time.time() * 1000)}).encode('utf-8'))

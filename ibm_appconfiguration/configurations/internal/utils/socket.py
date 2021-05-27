@@ -18,7 +18,11 @@ import ssl
 
 class Socket(object):
 
-    def __init__(self, url, headers, callback):
+    def __init__(self):
+        self.__callback = None
+        self.ws_client = None
+
+    def setup(self, url, headers, callback):
         self.__callback = callback
         self.ws_client = websocket.WebSocketApp(
             url,

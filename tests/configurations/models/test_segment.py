@@ -15,7 +15,7 @@
 from __future__ import absolute_import
 
 import unittest
-from ibm_appconfiguration.feature.models import Segment
+from ibm_appconfiguration.configurations.models import Segment
 
 
 class MyTestCase(unittest.TestCase):
@@ -47,11 +47,15 @@ class MyTestCase(unittest.TestCase):
 
     def test_segment(self):
         self.set_up()
+        self.assertTrue(self.sut.get_name() == "RegionalUser")
+        self.assertTrue(self.sut.get_segment_id() == "kdu77n4s")
+        self.assertTrue(len(self.sut.get_rules()) == 2)
         client_attributes = {
             'radius':  100,
             'cityRadius': 35
         }
         self.assertTrue(self.sut.evaluate_rule(client_attributes))
+
 
 
 if __name__ == '__main__':

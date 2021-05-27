@@ -76,16 +76,6 @@ class BaseRequest:
 
             else:
                 return BaseResponse(None, None, response.status_code)
-                # raise ApiException(response.status_code, http_response=response)
-
-        except requests.exceptions.SSLError:
-            Logger.debug('requests.exceptions.SSLError')
-            return BaseResponse(None, None,
-                                400)
-        except ApiException as err:
-            Logger.debug(err.message)
-            return BaseResponse(None, None,
-                                400)
         except Exception as err:
             Logger.debug(f'Error in service API call {str(err)}')
             return BaseResponse(None, None,

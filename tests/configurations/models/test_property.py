@@ -58,6 +58,8 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(sut.get_property_id(), "numericproperty")
         self.assertEqual(sut.get_value(), 10)
         self.assertEqual(sut.get_property_data_type(), ConfigurationType.NUMERIC)
+        value = sut.get_current_value("id1", {"email": "test.dev@tester.com"})
+        self.assertEqual(value, 10)
 
 
 if __name__ == '__main__':

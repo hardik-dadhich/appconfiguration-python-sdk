@@ -142,7 +142,6 @@ class ConfigurationHandler:
         if is_connected:
             if not self.__is_network_connected:
                 self.__is_network_connected = True
-                print("Here")
                 self.__fetch_config_data()
         else:
             Logger.debug(config_messages.NO_INTERNET_CONNECTION_ERROR)
@@ -191,7 +190,8 @@ class ConfigurationHandler:
         if self.__socket:
             self.__socket.cancel()
             self.__socket = None
-        self.__socket = Socket(
+        self.__socket = Socket()
+        self.__socket.setup(
             url=URLBuilder.get_web_socket_url(),
             headers=headers,
             callback=self.__on_web_socket_callback
@@ -238,18 +238,18 @@ class ConfigurationHandler:
                 except Exception as err:
                     Logger.debug(err)
 
-    def record_valuation(self, property_id, feature_id, identity_id, evaluated_segment_id):
+    def record_valuation(self, property_id, feature_id, entity_id, evaluated_segment_id):
         Metering.get_instance().add_metering(
             guid=self.__guid,
             environment_id=self.__environment_id,
             collection_id=self.__collection_id,
-            identity_id=identity_id,
+            entity_id=entity_id,
             segment_id=evaluated_segment_id,
             feature_id=feature_id,
             property_id=property_id
         )
 
-    def property_evaluation(self, property_obj: Property, identity_id: str, identity_attributes: dict = dict()) -> Any:
+    def property_evaluation(self, property_obj: Property, entity_id: str, entity_attributes: dict = dict()) -> Any:
 
         result_dict = {
             'evaluated_segment_id': config_constants.DEFAULT_SEGMENT_ID,
@@ -257,23 +257,23 @@ class ConfigurationHandler:
         }
 
         try:
-            if len(identity_attributes) <= 0:
+            if len(entity_attributes) <= 0:
                 return property_obj.get_value()
 
             segment_rules = property_obj.get_segment_rules()
             if len(segment_rules) > 0:
                 rules_map = self.__parse_rules(segment_rules)
-                result_dict = self.__evaluate_rules(rules_map, identity_attributes, property_obj=property_obj)
+                result_dict = self.__evaluate_rules(rules_map, entity_attributes, property_obj=property_obj)
                 return result_dict['value']
             else:
                 return property_obj.get_value()
 
         finally:
             property_id = property_obj.get_property_id()
-            self.record_valuation(property_id=property_id, feature_id=None, identity_id=identity_id,
+            self.record_valuation(property_id=property_id, feature_id=None, entity_id=entity_id,
                                   evaluated_segment_id=result_dict['evaluated_segment_id'])
 
-    def feature_evaluation(self, feature: Feature, identity_id: str, identity_attributes: dict = dict()) -> Any:
+    def feature_evaluation(self, feature: Feature, entity_id: str, entity_attributes: dict = dict()) -> Any:
 
         result_dict = {
             'evaluated_segment_id': config_constants.DEFAULT_SEGMENT_ID,
@@ -282,13 +282,13 @@ class ConfigurationHandler:
         try:
             if feature.is_enabled():
 
-                if len(identity_attributes) <= 0:
+                if len(entity_attributes) <= 0:
                     return feature.get_enabled_value()
 
                 segment_rules = feature.get_segment_rules()
                 if len(segment_rules) > 0:
                     rules_map = self.__parse_rules(segment_rules)
-                    result_dict = self.__evaluate_rules(rules_map, identity_attributes, feature=feature)
+                    result_dict = self.__evaluate_rules(rules_map, entity_attributes, feature=feature)
                     return result_dict['value']
                 else:
                     return feature.get_enabled_value()
@@ -296,11 +296,11 @@ class ConfigurationHandler:
                 return feature.get_disabled_value()
         finally:
             feature_id = None if feature is None else feature.get_feature_id()
-            self.record_valuation(property_id=None, feature_id=feature_id, identity_id=identity_id,
+            self.record_valuation(property_id=None, feature_id=feature_id, entity_id=entity_id,
                                   evaluated_segment_id=result_dict['evaluated_segment_id'])
 
     def __evaluate_rules(self, rules_map: dict,
-                         identity_attributes: dict = dict(),
+                         entity_attributes: dict = dict(),
                          feature: Feature = None,
                          property_obj: Property = None) -> dict:
         result_dict = {
@@ -316,7 +316,7 @@ class ConfigurationHandler:
                         segments: List = rule.get('segments')
                         for inner_level in range(0, len(segments)):
                             segment_key = segments[inner_level]
-                            if self.__evaluate_segment(segment_key, identity_attributes):
+                            if self.__evaluate_segment(segment_key, entity_attributes):
                                 result_dict['evaluated_segment_id'] = segment_key
                                 if segment_rule.get_value() == "$default":
                                     result_dict[
@@ -330,10 +330,10 @@ class ConfigurationHandler:
         result_dict['value'] = feature.get_enabled_value() if feature is not None else property_obj.get_value()
         return result_dict
 
-    def __evaluate_segment(self, segment_key: str, identity_attributes: dict) -> bool:
+    def __evaluate_segment(self, segment_key: str, entity_attributes: dict) -> bool:
         if segment_key in self.__segment_map:
             segment: Segment = self.__segment_map[segment_key]
-            return segment.evaluate_rule(identity_attributes)
+            return segment.evaluate_rule(entity_attributes)
         return False
 
     def __parse_rules(self, segment_rules: List) -> dict:

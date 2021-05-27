@@ -47,7 +47,7 @@ class Metering:
         self.__metering_url = url
         self.__apikey = apikey
 
-    def add_metering(self, guid: str, environment_id: str, collection_id: str, identity_id: str, segment_id: str,
+    def add_metering(self, guid: str, environment_id: str, collection_id: str, entity_id: str, segment_id: str,
                      feature_id: str = None,
                      property_id: str = None):
 
@@ -66,27 +66,27 @@ class Metering:
                 if environment_id in modify_metering_data[guid]:
                     if collection_id in modify_metering_data[guid][environment_id]:
                         if modify_id in modify_metering_data[guid][environment_id][collection_id]:
-                            if identity_id in modify_metering_data[guid][environment_id][collection_id][modify_id]:
-                                if segment_id in modify_metering_data[guid][environment_id][collection_id][modify_id][identity_id]:
-                                    modify_metering_data[guid][environment_id][collection_id][modify_id][identity_id][segment_id]['evaluation_time'] = time
-                                    count = modify_metering_data[guid][environment_id][collection_id][modify_id][identity_id][segment_id]['count']
-                                    modify_metering_data[guid][environment_id][collection_id][modify_id][identity_id][segment_id]['count'] = count + 1
+                            if entity_id in modify_metering_data[guid][environment_id][collection_id][modify_id]:
+                                if segment_id in modify_metering_data[guid][environment_id][collection_id][modify_id][entity_id]:
+                                    modify_metering_data[guid][environment_id][collection_id][modify_id][entity_id][segment_id]['evaluation_time'] = time
+                                    count = modify_metering_data[guid][environment_id][collection_id][modify_id][entity_id][segment_id]['count']
+                                    modify_metering_data[guid][environment_id][collection_id][modify_id][entity_id][segment_id]['count'] = count + 1
                                 else:
-                                    modify_metering_data[guid][environment_id][collection_id][modify_id][identity_id][segment_id] = feature_json
+                                    modify_metering_data[guid][environment_id][collection_id][modify_id][entity_id][segment_id] = feature_json
                             else:
-                                modify_metering_data[guid][environment_id][collection_id][modify_id][identity_id] = {
+                                modify_metering_data[guid][environment_id][collection_id][modify_id][entity_id] = {
                                     segment_id: feature_json
                                 }
                         else:
                             modify_metering_data[guid][environment_id][collection_id][modify_id] = {
-                                identity_id: {
+                                entity_id: {
                                     segment_id: feature_json
                                 }
                             }
                     else:
                         modify_metering_data[guid][environment_id][collection_id] = {
                             modify_id: {
-                                identity_id: {
+                                entity_id: {
                                     segment_id: feature_json
                                 }
                             }
@@ -95,7 +95,7 @@ class Metering:
                     modify_metering_data[guid][environment_id] = {
                         collection_id: {
                             modify_id: {
-                                identity_id: {
+                                entity_id: {
                                     segment_id: feature_json
                                 }
                             }
@@ -106,7 +106,7 @@ class Metering:
                     environment_id: {
                         collection_id: {
                             modify_id: {
-                                identity_id: {
+                                entity_id: {
                                     segment_id: feature_json
                                 }
                             }
@@ -144,11 +144,11 @@ class Metering:
                         'usages': []
                     }
                     for feature_id, feature_map in collection_map.items():
-                        for identity_id, identity_map in feature_map.items():
-                            for segment_id, segment_map in identity_map.items():
+                        for entity_id, entity_map in feature_map.items():
+                            for segment_id, segment_map in entity_map.items():
                                 feature_json = {
                                     main_key: feature_id,
-                                    'identity_id': identity_id,
+                                    'entity_id': entity_id,
                                     'segment_id': None if segment_id == "$$null$$" else segment_id,
                                     'evaluation_time': segment_map['evaluation_time'],
                                     "count": segment_map['count']

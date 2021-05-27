@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from ibm_appconfiguration.core.internal import Logger
+from typing import Tuple
 
 
 class Rule:
@@ -111,17 +112,19 @@ class Rule:
 
         return case_checker.get(self.__operator, False)(key, value)
 
-    def __number_conversion(self, value) -> (bool, float):
+    def __number_conversion(self, value) -> Tuple[bool, float]:
+        if type(value) is bool:
+            return False, 0
         if type(float(value)) is float:
             return True, float(value)
         else:
             return False, 0
 
-    def evaluate_rule(self, identity_attributes: dict) -> bool:
+    def evaluate_rule(self, entity_attributes: dict) -> bool:
 
         result = False
-        if self.__attribute_name in identity_attributes:
-            key = identity_attributes.get(self.__attribute_name)
+        if self.__attribute_name in entity_attributes:
+            key = entity_attributes.get(self.__attribute_name)
         else:
             return result
         for i in range(0, len(self.__values)):

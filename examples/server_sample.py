@@ -39,18 +39,18 @@ def fetch_feature(feature_id: str, request_object=None) -> str:
         feature = app_config.get_feature(feature_id)
         try:
             if feature:
-                identity = {
+                entity_attributes = {
                     'city': 'Bangalore',
                     'country': 'India'
                 }
                 if feature.get_feature_data_type() == ConfigurationType.STRING:
-                    val = feature.get_current_value(id='pvQr45', identity_attributes=identity)
+                    val = feature.get_current_value(id='pvQr45', entity_attributes=entity_attributes)
                     return f"Your feature value is {val}"
                 elif feature.get_feature_data_type() == ConfigurationType.BOOLEAN:
-                    val = feature.get_current_value('pvQr45', identity)
+                    val = feature.get_current_value('pvQr45', entity_attributes)
                     return f"Your feature value is {val}"
                 elif feature.get_feature_data_type() == ConfigurationType.NUMERIC:
-                    val = feature.get_current_value('pvQr45', identity)
+                    val = feature.get_current_value('pvQr45', entity_attributes)
                     return f"Your feature value is {val}"
             else:
                 return "Not loaded"
@@ -89,11 +89,11 @@ class MockServer(BaseHTTPRequestHandler):
 
         feature = app_config.get_feature("featurestring")
 
-        identity = {
+        entity_attributes = {
             'id': 'pvqr',
             "location": location
         }
-        value = feature.get_current_value("pvQr45", identity)
+        value = feature.get_current_value("pvQr45", entity_attributes)
 
         is_valid = True
         if value == "Hello Googler":

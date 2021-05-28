@@ -16,7 +16,7 @@ from .configurations.internal.utils.validators import Validators
 from .configurations.models import Feature, ConfigurationType, Property
 from .core.internal import Logger
 from .configurations.internal.common import config_messages
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 from .configurations.configuration_handler import ConfigurationHandler
 
 try:

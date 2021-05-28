@@ -36,13 +36,13 @@ class Segment:
     def get_rules(self) -> list:
         return self.__rules
 
-    def evaluate_rule(self, identity_attributes: dict) -> bool:
+    def evaluate_rule(self, entity_attributes: dict) -> bool:
         for index in range(0, len(self.__rules)):
             try:
                 dict_sec = self.__rules[index]
                 rule = Rule(dict_sec)
 
-                if not rule.evaluate_rule(identity_attributes):
+                if not rule.evaluate_rule(entity_attributes):
                     return False
             except:
                 Logger.debug('Invalid action in Segment class.')

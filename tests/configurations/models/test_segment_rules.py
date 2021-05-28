@@ -15,7 +15,7 @@
 from __future__ import absolute_import
 
 import unittest
-from ibm_appconfiguration.feature.models import SegmentRules
+from ibm_appconfiguration.configurations.models import SegmentRules
 
 
 class TestSegmentRules(unittest.TestCase):

@@ -53,10 +53,10 @@ class Feature:
     def get_segment_rules(self) -> list:
         return self.__segment_rules
 
-    def get_current_value(self, identity_id: str, identity_attributes: dict = dict()) -> Any:
-        if not identity_id or identity_id == "":
-            Logger.error("A valid id should be passed for this method.")
+    def get_current_value(self, entity_id: str, entity_attributes: dict = dict()) -> Any:
+        if not entity_id or entity_id == "":
+            Logger.error("A valid entity id should be passed for this method.")
             return None
         from ibm_appconfiguration.configurations.configuration_handler import ConfigurationHandler
         feature_handler = ConfigurationHandler.get_instance()
-        return feature_handler.feature_evaluation(feature=self, identity_id=identity_id, identity_attributes=identity_attributes)
+        return feature_handler.feature_evaluation(feature=self, entity_id=entity_id, entity_attributes=entity_attributes)

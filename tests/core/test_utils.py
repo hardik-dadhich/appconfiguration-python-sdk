@@ -11,3 +11,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+
+import unittest
+from ibm_appconfiguration.core.internal.utils import remove_null_values
+
+
+class MyTestCase(unittest.TestCase):
+
+    def test_dict(self):
+        dict = {
+            "name": "tester",
+            "value": None,
+            "age": 28
+        }
+
+        expected_dict = {
+            "name": "tester",
+            "age": 28
+        }
+
+        self.assertEqual(remove_null_values(dict), expected_dict)
+        self.assertEqual(remove_null_values("notdict"), "notdict")
+
+
+
+if __name__ == '__main__':
+    unittest.main()

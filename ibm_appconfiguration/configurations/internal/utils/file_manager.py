@@ -23,10 +23,14 @@ class FileManager:
     file_name = "appconfiguration.json"
 
     @classmethod
-    def store_files(cls, json_data=dict()) -> bool:
+    def store_files(cls, json_data=dict(), file_path: Optional[str] = None) -> bool:
 
-        this_dir, _ = os.path.split(__file__)
-        cache_loc = os.path.join(this_dir, cls.file_name)
+        cache_loc = ''
+        if file_path is not None:
+            cache_loc = file_path
+        else:
+            this_dir, _ = os.path.split(__file__)
+            cache_loc = os.path.join(this_dir, cls.file_name)
         try:
             with open(cache_loc, 'w') as cache:
                 fcntl.flock(cache, fcntl.LOCK_EX | fcntl.LOCK_NB)

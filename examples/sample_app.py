@@ -57,7 +57,7 @@ class Window(tk.Tk):
         app_config = AppConfiguration.get_instance()
         app_config.enable_debug(True)
         feature = app_config.get_feature("featurestring")
-        identity = {
+        entity_attributes = {
             'city': 'Bangalore',
             'country': 'India'
         }
@@ -79,12 +79,12 @@ class Window(tk.Tk):
             try:
                 if property_obj:
 
-                    identity = {
+                    entity_attributes = {
                         'city': 'Bangalore',
                         'country': 'India'
                     }
                     if property_obj.get_property_data_type() == ConfigurationType.NUMERIC:
-                        val = property_obj.get_current_value("pvQr45", identity)
+                        val = property_obj.get_current_value("pvQr45", entity_attributes)
                         self.label_text.set(F"Your configurations property value is {val}")
                         self.configure(background="yellow")
                 else:
@@ -103,20 +103,20 @@ class Window(tk.Tk):
             try:
                 if feature:
 
-                    identity = {
+                    entity_attributes = {
                         'city': 'Bangalore',
                         'country': 'India'
                     }
                     if feature.get_feature_data_type() == ConfigurationType.STRING:
-                        val = feature.get_current_value("pvQr45", identity)
+                        val = feature.get_current_value("pvQr45", entity_attributes)
                         self.label_text.set(F"Your configurations value is {val}")
                         self.configure(background="yellow")
                     elif feature.get_feature_data_type() == ConfigurationType.BOOLEAN:
-                        val = feature.get_current_value("pvQr45", identity)
+                        val = feature.get_current_value("pvQr45", entity_attributes)
                         self.label_text.set(F"Your configurations value is {val}")
                         self.configure(background="green")
                     elif feature.get_feature_data_type() == ConfigurationType.NUMERIC:
-                        val = feature.get_current_value("pvQr45", identity)
+                        val = feature.get_current_value("pvQr45", entity_attributes)
                         self.label_text.set(F"Your configurations value is {val}")
                         self.configure(background="black")
                 else:

@@ -45,13 +45,13 @@ class Property:
     def get_segment_rules(self) -> list:
         return self.__segment_rules
 
-    def get_current_value(self, identity_id: str, identity_attributes: dict = dict()) -> Any:
+    def get_current_value(self, entity_id: str, entity_attributes: dict = dict()) -> Any:
 
-        if not identity_id or identity_id == "":
-            Logger.error("A valid id should be passed for this method.")
+        if not entity_id or entity_id == "":
+            Logger.error("A valid entity id should be passed for this method.")
             return None
         from ibm_appconfiguration.configurations.configuration_handler import ConfigurationHandler
         configuration_handler = ConfigurationHandler.get_instance()
-        return configuration_handler.property_evaluation(property_obj=self, identity_id=identity_id,
-                                                         identity_attributes=identity_attributes)
+        return configuration_handler.property_evaluation(property_obj=self, entity_id=entity_id,
+                                                         entity_attributes=entity_attributes)
 

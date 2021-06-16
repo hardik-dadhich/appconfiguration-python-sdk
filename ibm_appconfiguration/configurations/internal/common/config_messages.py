@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+This file defines the various messages used by the SDK.
+"""
+
 REGION_ERROR = "Provide a valid region in App Configuration init"
 GUID_ERROR = "Provide a valid guid in App Configuration init"
 APIKEY_ERROR = "Provide a valid apiKey in App Configuration init"

@@ -12,44 +12,74 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+This module provides methods that perform metering and usage related operations.
+"""
 from threading import Lock, Timer
 from datetime import datetime
-from ibm_appconfiguration.core import BaseRequest
+from .api_manager import APIManager
+from .logger import Logger
 from ..common import config_messages
 
 
 class Metering:
+    """Class to send the metering data."""
     __send_interval = 600
     __instance = None
 
     @staticmethod
-    def get_instance(repeat=True):
+    def get_instance():
         """ Static access method. """
         if Metering.__instance is None:
-            return Metering(repeat)
+            return Metering()
         return Metering.__instance
 
-    def __init__(self, repeat=True):
+    def __init__(self):
         """ Virtually private constructor. """
         if Metering.__instance is not None:
             raise Exception("Metering " + config_messages.SINGLETON_EXCEPTION)
-        else:
-            self.__metering_url = None
-            self.__apikey = None
-            self.__repeating = repeat
-            self.__lock = Lock()
-            self.__metering_feature_data = dict()
-            self.__metering_property_data = dict()
-            Metering.__instance = self
-            self.send_metering()
+        self.__metering_url = None
+        self.__apikey = None
+        self.__repeating = True
+        self.__lock = Lock()
+        self.__metering_feature_data = dict()
+        self.__metering_property_data = dict()
+        Metering.__instance = self
+        self.send_metering()
+
+    def set_repeat_calls(self, repeat):
+        """Set the send_metering repeating task
+
+        Args:
+            repeat: Bool to set the repeat task.
+        """
+        self.__repeating = repeat
 
     def set_metering_url(self, url: str, apikey):
+        """Set the metering url
+
+        Args:
+            url: Url for the metering.
+            apikey: Api Key of the service.
+        """
         self.__metering_url = url
         self.__apikey = apikey
 
-    def add_metering(self, guid: str, environment_id: str, collection_id: str, entity_id: str, segment_id: str,
-                     feature_id: str = None,
+    def add_metering(self, guid: str, environment_id: str,
+                     collection_id: str, entity_id: str,
+                     segment_id: str, feature_id: str = None,
                      property_id: str = None):
+        """ Add the Metering values.
+
+        Args:
+            guid: GUID of the App Configuration service. Get it from the service credentials section of the dashboard.
+            environment_id: Id of the environment created in App Configuration service instance.
+            collection_id: Id of the collection created in App Configuration service instance.
+            entity_id: Id of the Entity.
+            segment_id: Id of the Segment.
+            feature_id: Id of the Feature.
+            property_id: Id of the Property.
+        """
 
         self.__lock.acquire()
         try:
@@ -117,19 +147,15 @@ class Metering:
             self.__lock.release()
 
     def __send_to_server(self, guid, data):
-        service = BaseRequest()
-        header = {
-            'Authorization': self.__apikey,
-            'Content-Type': 'application/json'
-        }
-
-        request = service.prepare_request(
-            method='POST',
-            url="{0}{1}/usage".format(self.__metering_url, guid),
-            headers=header,
-            data=data
-        )
-        service.send(request)
+        if self.__repeating:
+            api_manager = APIManager.get_instance()
+            api_manager.setup_base()
+            response = api_manager.prepare_api_request(method="POST",
+                                                   url="{0}{1}/usage".format(self.__metering_url, guid),
+                                                   data=data)
+            status_code = response.get_status_code()
+            if 200 <= status_code <= 299:
+                Logger.debug("Posted metering data successfully")
 
     def __build_request_body(self, send_metering_data: dict, result: dict, main_key: str):
 
@@ -157,9 +183,9 @@ class Metering:
                     result[guid].append(collections_map)
 
     def send_metering(self):
-
+        """Send the metering."""
         if self.__repeating:
-            timer = Timer(self.__send_interval, lambda: self.send_metering())
+            timer = Timer(self.__send_interval, self.send_metering)
             timer.daemon = True
             timer.start()
 
@@ -173,7 +199,7 @@ class Metering:
             self.__lock.release()
 
         if len(send_feature_data) <= 0 and len(send_property_data) <= 0:
-            return
+            return None
 
         result = dict()
 

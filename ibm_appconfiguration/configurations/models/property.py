@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+This module defines the model of a Property defined in App Configuration service.
+"""
+
 from typing import Any
-from .configurationType import ConfigurationType
-from ibm_appconfiguration.core.internal import Logger
+from ..internal.utils.logger import Logger
+from .configuration_type import ConfigurationType
 
 
 class Property:
-
+    """Property object"""
     def __init__(self, property_list=dict):
         """
         @type property_list: dict
@@ -31,21 +35,54 @@ class Property:
         self.__value = property_list.get('value', object)
 
     def get_property_name(self) -> str:
+        """Get the Property name
+
+        Returns:
+            Return the Property name
+        """
         return self.__name
 
     def get_value(self) -> str:
+        """Get the Property value
+
+        Returns:
+            Return the Property value
+        """
         return self.__value
 
     def get_property_id(self) -> str:
+        """Get the Property Id
+
+        Returns:
+            Return the Property Id
+        """
         return self.__property_id
 
     def get_property_data_type(self) -> ConfigurationType:
+        """Get the Property data type
+
+        Returns:
+            Return the Property data type
+        """
         return self.__type
 
     def get_segment_rules(self) -> list:
+        """Get the Property segment rules
+
+        Returns:
+            Return the list of Property segment rules
+        """
         return self.__segment_rules
 
-    def get_current_value(self, entity_id: str, entity_attributes: dict = dict()) -> Any:
+    def get_current_value(self, entity_id: str, entity_attributes: {}) -> Any:
+        """Get the evaluated value of the Property
+
+        Args:
+            entity_id: Id of the Entity
+            entity_attributes: Entity attributes object
+        Returns:
+            Return the evaluated Property value
+        """
 
         if not entity_id or entity_id == "":
             Logger.error("A valid entity id should be passed for this method.")
@@ -54,4 +91,3 @@ class Property:
         configuration_handler = ConfigurationHandler.get_instance()
         return configuration_handler.property_evaluation(property_obj=self, entity_id=entity_id,
                                                          entity_attributes=entity_attributes)
-

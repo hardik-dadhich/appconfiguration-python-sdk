@@ -12,29 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Internal class to handle the configuration.
+"""
 from typing import Dict, List, Optional, Any
-
+from threading import Timer, Thread
+from ibm_appconfiguration.configurations.internal.common import config_messages, config_constants
+from .internal.utils.logger import Logger
 from .models import Feature
 from .models import SegmentRules
 from .models import Segment
 from .models import Property
-from ibm_appconfiguration.core.internal import Logger
-from ibm_appconfiguration.core import BaseRequest
 from .internal.utils.file_manager import FileManager
 from .internal.utils.metering import Metering
 from .internal.utils.socket import Socket
 from .internal.utils.url_builder import URLBuilder
-from threading import Timer, Thread
-from ibm_appconfiguration.configurations.internal.common import config_messages, config_constants
 from .internal.utils.connectivity import Connectivity
-
-try:
-    import thread
-except ImportError:
-    import _thread as thread
+from .internal.utils.api_manager import APIManager
 
 
 class ConfigurationHandler:
+    """Internal class to handle the configuration"""
     __instance = None
 
     @staticmethod
@@ -45,36 +43,45 @@ class ConfigurationHandler:
         return ConfigurationHandler.__instance
 
     def __init__(self):
+
         """ Virtually private constructor. """
         self.__retry_count = 3
         if ConfigurationHandler.__instance is not None:
             raise Exception("ConfigurationHandler " + config_messages.SINGLETON_EXCEPTION)
-        else:
-            self.__collection_id = ''
-            self.__environment_id = ''
-            self.__apikey = ''
-            self.__guid = ''
-            self.__region = ''
-            self.__is_initialized = False
-            self.__configuration_update_listener = None
-            self.__feature_map = dict()
-            self.__property_map = dict()
-            self.__segment_map = dict()
-            self.__live_config_update_enabled = True
-            ConfigurationHandler.__instance = self
-            self.__retry_count = 3
-            self.__retry_interval = 600
-            self.__config_file = None
-            self.__on_socket_retry = False
-            self.__override_server_host = None
-            self.__socket = None
-            self.__connectivity = None
-            self.__is_network_connected = True
+        self.__collection_id = ''
+        self.__environment_id = ''
+        self.__apikey = ''
+        self.__guid = ''
+        self.__region = ''
+        self.__is_initialized = False
+        self.__configuration_update_listener = None
+        self.__feature_map = dict()
+        self.__property_map = dict()
+        self.__segment_map = dict()
+        self.__live_config_update_enabled = True
+        ConfigurationHandler.__instance = self
+        self.__retry_count = 3
+        self.__retry_interval = 600
+        self.__config_file = None
+        self.__on_socket_retry = False
+        self.__override_server_host = None
+        self.__socket = None
+        self.__connectivity = None
+        self.__is_network_connected = True
+        self.__api_manager = None
 
     def init(self, apikey: str,
              guid: str,
              region: str,
              override_server_host=str):
+        """ Initialize the configuration.
+
+        Args:
+            apikey: ApiKey of the App Configuration service. Get it from the service credentials section of the dashboard
+            guid: GUID of the App Configuration service. Get it from the service credentials section of the dashboard
+            region: Region name where the service instance is created.
+            override_server_host: Non public urls for testing purpose.
+        """
 
         self.__apikey = apikey
         self.__guid = guid
@@ -88,6 +95,16 @@ class ConfigurationHandler:
     def set_context(self, collection_id: str, environment_id: str,
                     configuration_file: Optional[str] = None,
                     live_config_update_enabled: Optional[bool] = True):
+        """Set the context for the configuration
+
+        Args:
+            collection_id: Id of the collection created in App Configuration service instance.
+            environment_id: Id of the environment created in App Configuration service instance.
+            configuration_file: Path to the JSON file which contains configuration details.
+            live_config_update_enabled: Set this value to false if the new configuration values shouldn't be fetched from the server.
+            Make sure to provide a proper JSON file in the configuration_file path.
+            By default, this value is enabled.
+        """
 
         self.__collection_id = collection_id
         self.__environment_id = environment_id
@@ -95,8 +112,11 @@ class ConfigurationHandler:
                                            guid=self.__guid,
                                            region=self.__region,
                                            environment_id=environment_id,
-                                           override_server_host=self.__override_server_host)
+                                           override_server_host=self.__override_server_host,
+                                           apikey=self.__apikey)
         Metering.get_instance().set_metering_url(URLBuilder.get_metering_url(), self.__apikey)
+        self.__api_manager = APIManager.get_instance()
+        self.__api_manager.setup_base()
         self.__is_initialized = True
 
         self.__live_config_update_enabled = live_config_update_enabled
@@ -104,6 +124,7 @@ class ConfigurationHandler:
         self.__check_network()
 
     def load_data(self):
+        """Load the configuration data"""
         if not self.__is_initialized:
             Logger.error(config_messages.CONFIGURATION_HANDLER_INIT_ERROR)
             return
@@ -117,6 +138,11 @@ class ConfigurationHandler:
                 self.__socket.cancel()
 
     def register_configuration_update_listener(self, listener):
+        """Register the listener
+
+        Args:
+            listener: Listener for the configuration update.
+        """
         if callable(listener):
             if self.__is_initialized:
                 self.__configuration_update_listener = listener
@@ -148,32 +174,54 @@ class ConfigurationHandler:
             self.__is_network_connected = False
 
     def get_properties(self) -> Dict[str, Property]:
+        """Get the list of Property objects
+
+        Returns:
+            List of Property objects
+        """
         return self.__property_map
 
     def get_property(self, property_id: str):
+        """Get the Property with give Property Id
+
+        Args:
+            property_id: The Property ID value.
+        Returns:
+            Property object with the given property_id. If the Property is \
+            not available then expect `None`.
+        """
         if property_id in self.__property_map:
             return self.__property_map.get(property_id)
-        else:
-            self.__load_configurations()
-            if property_id in self.__property_map:
-                return self.__property_map.get(property_id)
-            else:
-                Logger.error(config_messages.PROPERTY_INVALID + property_id)
-                return None
+        self.__load_configurations()
+        if property_id in self.__property_map:
+            return self.__property_map.get(property_id)
+        Logger.error(config_messages.PROPERTY_INVALID + property_id)
+        return None
 
     def get_features(self) -> Dict[str, Feature]:
+        """Get the list of Feature objects
+
+        Returns:
+            List of Feature objects
+        """
         return self.__feature_map
 
     def get_feature(self, feature_id: str) -> Feature:
+        """Get the Feature with give Feature Id
+
+        Args:
+            feature_id: The Feature ID value.
+        Returns:
+            Feature object with the given feature_id. If the Feature is not available \
+            then expect `None`.
+        """
         if feature_id in self.__feature_map:
             return self.__feature_map.get(feature_id)
-        else:
-            self.__load_configurations()
-            if feature_id in self.__feature_map:
-                return self.__feature_map.get(feature_id)
-            else:
-                Logger.error(config_messages.FEATURE_INVALID + feature_id)
-                return None
+        self.__load_configurations()
+        if feature_id in self.__feature_map:
+            return self.__feature_map.get(feature_id)
+        Logger.error(config_messages.FEATURE_INVALID + feature_id)
+        return None
 
     def __fetch_config_data(self):
         if self.__is_initialized:
@@ -184,8 +232,9 @@ class ConfigurationHandler:
             config_thread.start()
 
     def __start_web_socket(self):
+        bearer_token = URLBuilder.get_iam_authenticator().token_manager.get_token()
         headers = {
-            'Authorization': self.__apikey
+            'Authorization': 'Bearer ' + bearer_token
         }
         if self.__socket:
             self.__socket.cancel()
@@ -209,8 +258,7 @@ class ConfigurationHandler:
                 self.__feature_map = dict()
                 try:
                     all_feature_list: List = all_config.get('features')
-                    for i in range(0, len(all_feature_list)):
-                        feature: dict = all_feature_list[i]
+                    for i, feature in enumerate(all_feature_list):
                         feature_obj = Feature(feature)
                         self.__feature_map[feature_obj.get_feature_id()] = feature_obj
                 except Exception as err:
@@ -220,8 +268,7 @@ class ConfigurationHandler:
                 self.__property_map = dict()
                 try:
                     all_property_list: List = all_config.get('properties')
-                    for i in range(0, len(all_property_list)):
-                        property_list: dict = all_property_list[i]
+                    for i, property_list in enumerate(all_property_list):
                         property_obj = Property(property_list)
                         self.__property_map[property_obj.get_property_id()] = property_obj
                 except Exception as err:
@@ -231,7 +278,7 @@ class ConfigurationHandler:
                 self.__segment_map = dict()
                 try:
                     segment_list: List = all_config.get('segments')
-                    for i in range(0, len(segment_list)):
+                    for i, segment in enumerate(segment_list):
                         segment: dict = segment_list[i]
                         segment_obj = Segment(segment)
                         self.__segment_map[segment_obj.get_segment_id()] = segment_obj
@@ -239,6 +286,14 @@ class ConfigurationHandler:
                     Logger.debug(err)
 
     def record_valuation(self, property_id, feature_id, entity_id, evaluated_segment_id):
+        """Record the evaluation data.
+
+        Args:
+            property_id: Id of the Property
+            feature_id: Id of the Feature
+            entity_id: Id of the Entity
+            evaluated_segment_id: Id of the Segment
+        """
         Metering.get_instance().add_metering(
             guid=self.__guid,
             environment_id=self.__environment_id,
@@ -249,7 +304,17 @@ class ConfigurationHandler:
             property_id=property_id
         )
 
-    def property_evaluation(self, property_obj: Property, entity_id: str, entity_attributes: dict = dict()) -> Any:
+    def property_evaluation(self, property_obj: Property, entity_id: str,
+                            entity_attributes: dict = None) -> Any:
+        """Property evaluation method
+
+        Args:
+            property_obj: Property object
+            entity_id: Entity Id
+            entity_attributes: Entity attributes object
+        Returns:
+            Return evaluated value
+        """
 
         result_dict = {
             'evaluated_segment_id': config_constants.DEFAULT_SEGMENT_ID,
@@ -257,24 +322,33 @@ class ConfigurationHandler:
         }
 
         try:
-            if len(entity_attributes) <= 0:
+            if entity_attributes is None or len(entity_attributes) <= 0:
                 return property_obj.get_value()
 
             segment_rules = property_obj.get_segment_rules()
             if len(segment_rules) > 0:
                 rules_map = self.__parse_rules(segment_rules)
-                result_dict = self.__evaluate_rules(rules_map, entity_attributes, property_obj=property_obj)
+                result_dict = self.__evaluate_rules(rules_map, entity_attributes,
+                                                    property_obj=property_obj)
                 return result_dict['value']
-            else:
-                return property_obj.get_value()
+            return property_obj.get_value()
 
         finally:
             property_id = property_obj.get_property_id()
             self.record_valuation(property_id=property_id, feature_id=None, entity_id=entity_id,
                                   evaluated_segment_id=result_dict['evaluated_segment_id'])
 
-    def feature_evaluation(self, feature: Feature, entity_id: str, entity_attributes: dict = dict()) -> Any:
+    def feature_evaluation(self, feature: Feature, entity_id: str,
+                           entity_attributes: dict = None) -> Any:
+        """Feature evaluation method
 
+        Args:
+            feature: Feature object
+            entity_id: Entity Id
+            entity_attributes: Entity attributes object
+        Returns:
+            Return evaluated value
+        """
         result_dict = {
             'evaluated_segment_id': config_constants.DEFAULT_SEGMENT_ID,
             'value': None
@@ -282,7 +356,7 @@ class ConfigurationHandler:
         try:
             if feature.is_enabled():
 
-                if len(entity_attributes) <= 0:
+                if entity_attributes is None or len(entity_attributes) <= 0:
                     return feature.get_enabled_value()
 
                 segment_rules = feature.get_segment_rules()
@@ -290,17 +364,15 @@ class ConfigurationHandler:
                     rules_map = self.__parse_rules(segment_rules)
                     result_dict = self.__evaluate_rules(rules_map, entity_attributes, feature=feature)
                     return result_dict['value']
-                else:
-                    return feature.get_enabled_value()
-            else:
-                return feature.get_disabled_value()
+                return feature.get_enabled_value()
+            return feature.get_disabled_value()
         finally:
             feature_id = None if feature is None else feature.get_feature_id()
             self.record_valuation(property_id=None, feature_id=feature_id, entity_id=entity_id,
                                   evaluated_segment_id=result_dict['evaluated_segment_id'])
 
     def __evaluate_rules(self, rules_map: dict,
-                         entity_attributes: dict = dict(),
+                         entity_attributes: {},
                          feature: Feature = None,
                          property_obj: Property = None) -> dict:
         result_dict = {
@@ -309,18 +381,18 @@ class ConfigurationHandler:
         }
         for i in range(1, len(rules_map) + 1):
             segment_rule = rules_map[i]
-            if not (segment_rule is None):
+            if segment_rule is not None:
                 for level in range(0, len(segment_rule.get_rules())):
                     try:
                         rule: dict = segment_rule.get_rules()[level]
                         segments: List = rule.get('segments')
-                        for inner_level in range(0, len(segments)):
-                            segment_key = segments[inner_level]
+                        for _, segment_key in enumerate(segments):
                             if self.__evaluate_segment(segment_key, entity_attributes):
                                 result_dict['evaluated_segment_id'] = segment_key
                                 if segment_rule.get_value() == "$default":
                                     result_dict[
-                                        'value'] = feature.get_enabled_value() if feature is not None else property_obj.get_value()
+                                        'value'] = feature.get_enabled_value() if feature is not \
+                                                                                  None else property_obj.get_value()
                                 else:
                                     result_dict['value'] = segment_rule.get_value()
                                 return result_dict
@@ -338,9 +410,8 @@ class ConfigurationHandler:
 
     def __parse_rules(self, segment_rules: List) -> dict:
         rule_map = dict()
-        for i in range(0, len(segment_rules)):
+        for _, rules in enumerate(segment_rules):
             try:
-                rules = segment_rules[i]
                 rules_obj = SegmentRules(rules)
                 rule_map[rules_obj.get_order()] = rules_obj
             except Exception as err:
@@ -360,20 +431,8 @@ class ConfigurationHandler:
     def __fetch_from_api(self):
         if self.__is_initialized:
             self.__retry_count -= 1
-            config_url = URLBuilder.get_config_url()
-            service = BaseRequest()
-            header = {
-                'Authorization': self.__apikey,
-                'Content-Type': 'application/json'
-            }
 
-            request = service.prepare_request(
-                method='GET',
-                url=config_url,
-                headers=header
-            )
-
-            response = service.send(request)
+            response = self.__api_manager.prepare_api_request(method="GET", url=URLBuilder.get_config_url())
             status_code = response.get_status_code()
 
             if 200 <= status_code <= 299:
@@ -382,7 +441,8 @@ class ConfigurationHandler:
                     response_data = dict(response_data)
                     if response_data:
                         self.__write_server_file(response_data)
-                except:
+                except Exception as exception:
+                    Logger.error(f'error while while fetching {exception}')
                     if response_data:
                         self.__write_server_file(response_data)
             else:
@@ -391,26 +451,33 @@ class ConfigurationHandler:
                 else:
                     self.__retry_count = 3
                     Logger.error(config_messages.CONFIGURATION_API_ERROR)
-                    Timer(self.__retry_interval, lambda: self.__fetch_from_api()).start()
+                    timer = Timer(self.__retry_interval, self.__fetch_from_api)
+                    timer.daemon = True
+                    timer.start()
         else:
             Logger.debug(config_messages.CONFIGURATION_HANDLER_INIT_ERROR)
 
-    def __on_web_socket_callback(self, message=None, error_state=None, closed_state=None, open_state=None):
+    def __on_web_socket_callback(self, message=None, error_state=None,
+                                 closed_state=None, open_state=None):
         if message:
             self.__fetch_from_api()
             Logger.debug(f'Received message from socket {message}')
         elif error_state:
             Logger.debug(f'Received error from socket {error_state}')
-            Timer(self.__retry_interval, lambda: self.__start_web_socket()).start()
+            timer = Timer(self.__retry_interval, self.__start_web_socket)
+            timer.daemon = True
+            timer.start()
         elif closed_state:
-            Logger.debug(f'Received close connection from socket')
+            Logger.debug('Received close connection from socket')
             if self.__socket is not None:
                 self.__on_socket_retry = True
-                Timer(self.__retry_interval, lambda: self.__start_web_socket()).start()
+                timer = Timer(self.__retry_interval, self.__start_web_socket)
+                timer.daemon = True
+                timer.start()
         elif open_state:
             if self.__on_socket_retry:
                 self.__on_socket_retry = False
                 self.__fetch_from_api()
-            Logger.debug(f'Received opened connection from socket')
+            Logger.debug('Received opened connection from socket')
         else:
             Logger.debug('Unknown Error inside the socket connection')

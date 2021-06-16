@@ -12,17 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import websocket
+"""
+This module provides methods to perform operations on the websocket connection to the server.
+"""
 import ssl
+import websocket
 
 
-class Socket(object):
-
+class Socket:
+    """Class to handle the Web socket"""
     def __init__(self):
         self.__callback = None
         self.ws_client = None
 
     def setup(self, url, headers, callback):
+        """ Setup the socket.
+
+        Args:
+            url: Url for the socket
+            headers: Headers for the socket.
+            callback: Callback for the socket.
+        """
         self.__callback = callback
         self.ws_client = websocket.WebSocketApp(
             url,
@@ -35,19 +45,34 @@ class Socket(object):
         self.ws_client.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
     def on_message(self, message):
+        """Socket on-message
+
+        Args:
+            message: Message object from the socket
+        """
         if message == 'test message':
             return
         self.__callback(message=message)
 
     def on_error(self, error):
+        """Socket on-error
+
+        Args:
+            error: Error object from the socket
+        """
         self.__callback(error_state=error)
         self.ws_client.close()
 
     def on_close(self):
+        """Socket on-close call"""
         self.__callback(closed_state='Closed the web_socket')
 
     def on_open(self):
+        """Socket on-open call"""
         self.__callback(open_state='Opened the web_socket')
 
     def cancel(self):
+        """
+        Socket cancel.
+        """
         self.ws_client.close()

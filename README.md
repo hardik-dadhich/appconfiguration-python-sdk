@@ -189,4 +189,4 @@ The [examples](https://github.com/IBM/appconfiguration-python-sdk/tree/master/ex
 
 ## License
 
-This project is released under the Apache 2.0 license. The license's full text can be found in [LICENSE](https://github.com/IBM/appconfiguration-python-client-sdk/blob/master/LICENSE)
+This project is released under the Apache 2.0 license. The license's full text can be found in [LICENSE](https://github.com/IBM/appconfiguration-python-sdk/blob/master/LICENSE)

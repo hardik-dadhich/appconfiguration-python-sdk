@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+This file defines the constants used by the SDK.
+"""
+
 DEFAULT_SEGMENT_ID = '$$null$$'
 DEFAULT_HTTP_TYPE = 'https://'
 DEFAULT_WSS_TYPE = "wss://"
 DEFAULT_BASE_URL = ".apprapp.cloud.ibm.com"
+IAM_TEST_URL = "https://iam.test.cloud.ibm.com/identity/token"
+IAM_PROD_URL = "https://iam.cloud.ibm.com/identity/token"
+SDK_NAME = "appconfiguration-python-sdk"

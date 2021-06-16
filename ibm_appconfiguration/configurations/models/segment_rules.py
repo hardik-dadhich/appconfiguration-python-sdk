@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+This module defines the model of a segment rule defined in App Configuration service.
+"""
 
 class SegmentRules:
     """
@@ -18,17 +21,20 @@ class SegmentRules:
         segment_rules (dict): segment_rules JSON object that contains all the SegmentRules
    """
 
-    def __init__(self, segment_rules=dict()):
+    def __init__(self, segment_rules: {}):
 
         self.__order = segment_rules.get("order", 1)
         self.__value = segment_rules.get("value", object)
         self.__rules = segment_rules.get("rules", list())
 
     def get_order(self) -> int:
+        """Get the SegmentRule order"""
         return self.__order
 
     def get_rules(self) -> list:
+        """Get the SegmentRule rules list"""
         return self.__rules
 
     def get_value(self):
+        """Get the SegmentRule value"""
         return self.__value

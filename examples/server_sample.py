@@ -31,7 +31,9 @@ def setup() -> None:
     app_config.init(region=AppConfiguration.REGION_US_SOUTH,
                     guid=config.GUID,
                     apikey=config.APIKEY)
-    app_config.set_context(collection_id=config.COLLECTION, environment_id=config.ENV, configuration_file=config.FILE, live_config_update_enabled=isOnLine)
+    app_config.set_context(collection_id=config.COLLECTION, environment_id=config.ENV1,
+                           configuration_file=config.FILE, live_config_update_enabled=True)
+
 
 def fetch_feature(feature_id: str, request_object=None) -> str:
     if has_data:

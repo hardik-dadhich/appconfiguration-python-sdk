@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+This module defines the model of a segment defined in App Configuration service.
+"""
+
+from ..internal.utils.logger import Logger
 from .rule import Rule
-from ibm_appconfiguration.core.internal import Logger
 
 
 class Segment:
@@ -22,21 +26,29 @@ class Segment:
          segment_rules (dict): segments JSON object that contains all the Segments
    """
 
-    def __init__(self, segments=dict()):
+    def __init__(self, segments: {}):
         self.__name = segments.get("name", "")
         self.__segment_id = segments.get("segment_id", "")
         self.__rules = segments.get("rules", list())
 
     def get_name(self) -> str:
+        """Get the Segment name"""
         return self.__name
 
     def get_segment_id(self) -> str:
+        """Get the Segment Id"""
         return self.__segment_id
 
     def get_rules(self) -> list:
+        """Get the Segment rules"""
         return self.__rules
 
     def evaluate_rule(self, entity_attributes: dict) -> bool:
+        """Evaluate the Segment rules
+
+        Args:
+            entity_attributes: Entity attributes object
+        """
         for index in range(0, len(self.__rules)):
             try:
                 dict_sec = self.__rules[index]
@@ -44,6 +56,6 @@ class Segment:
 
                 if not rule.evaluate_rule(entity_attributes):
                     return False
-            except:
-                Logger.debug('Invalid action in Segment class.')
+            except Exception as exception:
+                Logger.debug(f'Invalid action in Segment class, {exception}')
         return True

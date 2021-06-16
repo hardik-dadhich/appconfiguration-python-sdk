@@ -11,5 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from ibm_appconfiguration.appconfiguration import AppConfiguration, Feature, Property, ConfigurationType
+"""
+ This package provides a client library for accessing the IBM App Configuration.
+"""
+from ibm_appconfiguration.appconfiguration import AppConfiguration, Feature, \
+    Property
+from ibm_appconfiguration.configurations.models.configuration_type import ConfigurationType
+from .version import __version__

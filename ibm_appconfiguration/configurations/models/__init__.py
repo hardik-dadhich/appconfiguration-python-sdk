@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+This module defines the various models defined in App Configuration service.
+"""
+
 from .feature import Feature
 from .rule import Rule
 from .segment_rules import SegmentRules
 from .segment import Segment
 from .property import Property
-from .configurationType import ConfigurationType
-
+from .configuration_type import ConfigurationType

@@ -12,11 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import requests
-from threading import Timer
+"""
+Package to perform the connectivity check.
+"""
 
+from threading import Timer
+import requests
+from .url_builder import URLBuilder
 
 class Connectivity:
+    """Connectivity checker"""
     __instance = None
 
     @staticmethod
@@ -24,7 +29,7 @@ class Connectivity:
         """ Static access method. """
         if Connectivity.__instance is None:
             return Connectivity()
-        return Connectivity.__instance;
+        return Connectivity.__instance
 
     def __init__(self):
         if Connectivity.__instance is not None:
@@ -34,19 +39,28 @@ class Connectivity:
             Connectivity.__instance = self
 
     def add_connectivity_listener(self, listener):
+        """ Listener for the the internet
+
+        Args:
+            listener: Listener for the the internet
+        """
         if callable(listener) and not self.__listeners.__contains__(listener):
             self.__listeners.append(listener)
 
     def check_connection(self):
-        self.__check_network()
-        Timer(30, lambda: self.check_connection()).start()
+        """Check the connection"""
+        url = URLBuilder.get_network_check_url()
+        if url:
+            self.__check_network(url)
+            timer = Timer(30, self.check_connection)
+            timer.daemon = True
+            timer.start()
 
-    def __check_network(self):
-        url = 'https://cloud.ibm.com'
+    def __check_network(self, url):
         try:
             _ = requests.head(url, timeout=3)
             for listener in self.__listeners:
                 listener(True)
-        except:
+        except Exception as _:
             for listener in self.__listeners:
                 listener(False)

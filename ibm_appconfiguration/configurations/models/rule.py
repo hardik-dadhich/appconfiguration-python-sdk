@@ -12,28 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ibm_appconfiguration.core.internal import Logger
+"""
+This module defines the model of a rule defined for a segment in App Configuration service.
+"""
+
 from typing import Tuple
 
 
 class Rule:
     """
-          Attributes:
+        Attributes:
            rules (dict): rules JSON object that contains all the Rules.
-      """
+    """
 
-    def __init__(self, rules=dict()):
+    def __init__(self, rules: {}):
         self.__attribute_name = rules.get("attribute_name", "")
         self.__operator = rules.get("operator", "")
         self.__values = rules.get("values", list())
 
     def get_attributes(self) -> str:
+        """Get the Rule attributes"""
         return self.__attribute_name
 
     def get_operator(self) -> str:
+        """Get the Rule operator"""
         return self.__operator
 
     def get_values(self) -> list:
+        """Get the Rule values"""
         return self.__values
 
     def __ends_with(self, key, value) -> bool:
@@ -48,10 +54,9 @@ class Rule:
     def __is(self, key, value) -> bool:
         if type(key) is type(value):
             return key == value
-        elif str(key) == str(value):
+        if str(key) == str(value):
             return True
-        else:
-            return False
+        return False
 
     def __greater_than(self, key, value) -> bool:
 
@@ -60,8 +65,7 @@ class Rule:
 
         if key_obj[0] and value_obj[0]:
             return key_obj[1] > value_obj[1]
-        else:
-            return False
+        return False
 
     def __lesser_than(self, key, value) -> bool:
         key_obj = self.__number_conversion(key)
@@ -69,8 +73,7 @@ class Rule:
 
         if key_obj[0] and value_obj[0]:
             return key_obj[1] < value_obj[1]
-        else:
-            return False
+        return False
 
     def __greater_than_equals(self, key, value) -> bool:
         key_obj = self.__number_conversion(key)
@@ -78,8 +81,7 @@ class Rule:
 
         if key_obj[0] and value_obj[0]:
             return key_obj[1] >= value_obj[1]
-        else:
-            return False
+        return False
 
     def __lesser_than_equals(self, key, value) -> bool:
         key_obj = self.__number_conversion(key)
@@ -87,8 +89,7 @@ class Rule:
 
         if key_obj[0] and value_obj[0]:
             return key_obj[1] <= value_obj[1]
-        else:
-            return False
+        return False
 
     def __operator_check(self, key_data=None, value_data=None) -> bool:
         key = key_data
@@ -100,28 +101,30 @@ class Rule:
             return result
 
         case_checker = {
-            "endsWith": lambda key, value: self.__ends_with(key, value),
-            "startsWith": lambda key, value: self.__starts_with(key, value),
-            "contains": lambda key, value: self.__contains(key, value),
-            "is": lambda key, value: self.__is(key, value),
-            "greaterThan": lambda key, value: self.__greater_than(key, value),
-            "lesserThan": lambda key, value: self.__lesser_than(key, value),
-            "greaterThanEquals": lambda key, value: self.__greater_than_equals(key, value),
-            "lesserThanEquals": lambda key, value: self.__lesser_than_equals(key, value)
+            "endsWith": self.__ends_with,
+            "startsWith": self.__starts_with,
+            "contains": self.__contains,
+            "is": self.__is,
+            "greaterThan": self.__greater_than,
+            "lesserThan": self.__lesser_than,
+            "greaterThanEquals": self.__greater_than_equals,
+            "lesserThanEquals": self.__lesser_than_equals
         }
-
         return case_checker.get(self.__operator, False)(key, value)
 
     def __number_conversion(self, value) -> Tuple[bool, float]:
-        if type(value) is bool:
+        if isinstance(value, bool):
             return False, 0
-        if type(float(value)) is float:
+        if isinstance(float(value), float):
             return True, float(value)
-        else:
-            return False, 0
+        return False, 0
 
     def evaluate_rule(self, entity_attributes: dict) -> bool:
+        """Evaluate the the Rule
 
+        Args:
+            entity_attributes: Entity attributes object
+        """
         result = False
         if self.__attribute_name in entity_attributes:
             key = entity_attributes.get(self.__attribute_name)

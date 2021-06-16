@@ -1,0 +1,5 @@
+[run]
+source=
+    ./ibm_appconfiguration/
+omit=
+    ./venv/*

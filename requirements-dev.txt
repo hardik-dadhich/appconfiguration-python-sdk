@@ -1,0 +1,10 @@
+# test dependencies
+responses>=0.10.6
+pylint>=1.4.4
+python-dotenv>=0.17.1
+
+
+# code coverage
+coverage<5
+recommonmark==0.7.1
+Sphinx==4.0.2

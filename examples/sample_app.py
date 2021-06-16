@@ -21,8 +21,6 @@ class Window(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.currentColl = config.COLLECTION
-        self.currentmode = True
         self.__haData = False
         self.title("App Configuration sample")
         self.label_text = tk.StringVar()
@@ -34,41 +32,17 @@ class Window(tk.Tk):
         hello_button = tk.Button(self, text="Get String Feature", command=lambda: self.fetch_feature('featurestring'))
         hello_button.pack(side=tk.LEFT, padx=(10, 20), pady=(0, 20))
 
-        numberic_button = tk.Button(self, text="Get Numeric Feature",
+        numeric_button = tk.Button(self, text="Get Numeric Feature",
                                     command=lambda: self.fetch_feature('featurenumeric'))
-        numberic_button.pack(side=tk.LEFT, padx=(10, 20), pady=(0, 20))
+        numeric_button.pack(side=tk.LEFT, padx=(10, 20), pady=(0, 20))
 
         bool_button = tk.Button(self, text="Get Boolean Feature", command=lambda: self.fetch_feature('featurebool'))
         bool_button.pack(side=tk.LEFT, padx=(10, 20), pady=(0, 20))
 
-        change_button = tk.Button(self, text="Change CollectionId", command=lambda: self.change_collection())
-        change_button.pack(side=tk.LEFT, padx=(10, 20), pady=(0, 20))
-
-        change_Offline = tk.Button(self, text="Change CollectionId", command=lambda: self.change_collection())
-        change_Offline.pack(side=tk.LEFT, padx=(10, 20), pady=(0, 20))
-
         property_button = tk.Button(self, text="Property", command=lambda: self.fetch_property('numericproperty'))
         property_button.pack(side=tk.RIGHT, padx=(10, 20), pady=(0, 20))
 
-
-        self.initialize_app(collectionId=self.currentColl)
-
-    def change_mode(self):
-        app_config = AppConfiguration.get_instance()
-        app_config.enable_debug(True)
-        feature = app_config.get_feature("featurestring")
-        entity_attributes = {
-            'city': 'Bangalore',
-            'country': 'India'
-        }
-        val = feature.get_current_value()
-
-    def change_collection(self):
-        if self.currentColl == config.COLLECTION:
-            self.currentColl = config.COLLECTION1
-        else:
-            self.currentColl = config.COLLECTION
-        self.initialize_app(collectionId=self.currentColl, isOnLine=self.currentmode)
+        self.initialize_app()
 
     def fetch_property(self, property_id: str):
         if self.__haData:
@@ -132,16 +106,16 @@ class Window(tk.Tk):
         self.__haData = True
         self.label_text.set('Get your Feature value NOW')
 
-    def initialize_app(self, collectionId=str, isOnLine: bool = True):
+    def initialize_app(self, isOnLine: bool = True):
         app_config = AppConfiguration.get_instance()
-        app_config.override_server_host = config.URL
-        app_config.enable_debug(True)
+        #app_config.override_server_host = config.URL
+        AppConfiguration.enable_debug(True)
         app_config.init(region=AppConfiguration.REGION_US_SOUTH,
                         guid=config.GUID,
                         apikey=config.APIKEY)
-        app_config.set_context(collection_id=config.COLLECTION, environment_id=config.ENV, configuration_file=config.FILE, live_config_update_enabled=isOnLine)
-
+        app_config.set_context(collection_id=config.COLLECTION, environment_id=config.ENV1, configuration_file=config.FILE, live_config_update_enabled=isOnLine)
         app_config.register_configuration_update_listener(self.response)
+        self.response()
 
 
 if __name__ == "__main__":

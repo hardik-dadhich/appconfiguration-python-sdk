@@ -12,19 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+This module provides methods that perform the store and retrieve operations on the
+file based cache of the SDK.
+"""
+
 import fcntl
 import json
 import os
-from ibm_appconfiguration.core.internal import Logger
 from typing import Optional
+from .logger import Logger
 
 
 class FileManager:
+    """FileManager to handle the cache"""
+
     file_name = "appconfiguration.json"
 
     @classmethod
-    def store_files(cls, json_data=dict(), file_path: Optional[str] = None) -> bool:
+    def store_files(cls, json_data: {}, file_path: Optional[str] = None) -> bool:
+        """Store the file
 
+        Args:
+            json_data: Data to be stored.
+            file_path: File path for the cache.
+        """
         cache_loc = ''
         if file_path is not None:
             cache_loc = file_path
@@ -43,7 +55,14 @@ class FileManager:
 
     @classmethod
     def read_files(cls, file_path: Optional[str] = None) -> dict:
+        """
+        Read the data from the cache.
 
+        Args:
+            file_path: File path for the cache.
+        Returns:
+            Dictionary from the cache.
+        """
         cache_loc = ''
         if file_path is not None:
             cache_loc = file_path

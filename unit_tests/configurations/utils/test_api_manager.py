@@ -55,7 +55,7 @@ class MyTestCase(unittest.TestCase):
 
         try:
             response_data = dict(resp.get_result())
-            assert len(response_data) == 3
+            self.assertEqual(len(response_data), 3)
         except Exception as exception:
             self.fail("Issues with API request")
 

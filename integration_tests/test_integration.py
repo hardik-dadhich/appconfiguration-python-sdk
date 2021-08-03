@@ -28,43 +28,42 @@ class MyTestCase(unittest.TestCase):
         features_list = self.sut.get_features()
         feature: Feature = self.sut.get_feature("defaultfeature")
 
-        assert len(features_list) == 3
-        assert feature.get_feature_id() == "defaultfeature"
+        self.assertEqual(len(features_list), 3)
+        self.assertEqual(feature.get_feature_id(), "defaultfeature")
 
         property_list = self.sut.get_properties()
         property_obj = self.sut.get_property("numericproperty")
 
-        assert len(property_list) == 1
-        assert property_obj.get_property_id() == "numericproperty"
+        self.assertEqual(len(property_list), 1)
+        self.assertEqual(property_obj.get_property_id(), "numericproperty")
 
         entity_id = "developer_entity"
         entity_attributes = {
             'email': 'tommartin@company.dev'
         }
         current_value = feature.get_current_value(entity_id, entity_attributes)
-        assert current_value == "Welcome"
+        self.assertEqual(current_value, "Welcome")
 
         entity_attributes = {
             'email': 'laila@company.test'
         }
         current_value = feature.get_current_value(entity_id, entity_attributes)
-        assert current_value == "Hello"
+        self.assertEqual(current_value, "Hello")
 
         entity_attributes = {
             'email': 'tommartin@tester.com'
         }
         current_value = property_obj.get_current_value(entity_id, entity_attributes)
-        assert current_value == 81
+        self.assertEqual(current_value, 81)
 
         entity_attributes = {
             'email': 'laila@company.test'
         }
         current_value = property_obj.get_current_value(entity_id, entity_attributes)
-        assert current_value == 25
+        self.assertEqual(current_value, 25)
 
     def test_app_configuration_with_file(self):
-        this_dir, _ = os.path.split(__file__)
-        FILE = os.path.join(this_dir, 'user.json')
+        FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'user.json')
 
         self.sut.set_context(self.collection_id, self.environment_id, FILE, False)
         time.sleep(2.0)

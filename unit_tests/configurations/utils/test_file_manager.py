@@ -21,8 +21,7 @@ class MyTestCase(unittest.TestCase):
     file_path = ''
 
     def setUp(self) -> None:
-        this_dir, _ = os.path.split(__file__)
-        self.file_path = os.path.join(this_dir, 'list.json')
+        self.file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'list.json')
 
     def test_file_store(self):
         data = {

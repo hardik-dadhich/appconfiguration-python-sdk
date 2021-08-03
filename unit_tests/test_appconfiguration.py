@@ -23,6 +23,7 @@ class MyTestCase(unittest.TestCase):
 
     def setUp(self):
         URLBuilder.set_auth_type()
+
     def test_configuration(self):
         sut1 = AppConfiguration.get_instance()
         sut2 = AppConfiguration.get_instance()
@@ -70,8 +71,7 @@ class MyTestCase(unittest.TestCase):
         sut1.init('us-south', "guid_value", "apikey_value")
         sut1.enable_debug(True)
 
-        this_dir, _ = os.path.split(__file__)
-        FILE = os.path.join(this_dir, 'user.json')
+        FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'user.json')
         sut1.set_context("collectionId", "environmentId", FILE, False)
         time.sleep(2.5)
 

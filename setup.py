@@ -11,7 +11,7 @@
 
 from setuptools import setup, find_packages
 
-NAME = "ibm-appconfiguration-python-sdk"
+NAME = "hardik-dadhich-python-sdk"
 VERSION = "0.1.2"
 # To install the library, run the following
 #
